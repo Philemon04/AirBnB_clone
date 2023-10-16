@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import cmd
+import shlex
 
 from models import storage
 from models.amenity import Amenity
@@ -10,8 +11,8 @@ from models.review import Review
 from models.state import State
 from models.user import User
 
-classes = {"BaseModel": BaseModel, "Amenity": Amenity, "City": City, "Place": Place
-    , "Review": Review, "State": State, "User": User}
+classes = {"BaseModel": BaseModel, "Amenity": Amenity, "City": City, "Place": Place,
+           "Review": Review, "State": State, "User": User}
 
 
 class HBNBCommand(cmd.Cmd):
@@ -55,15 +56,15 @@ class HBNBCommand(cmd.Cmd):
         new_dict = storage.all()
         if len(arg) == 0:
             print('** class name missing **')
-        elif len(arg) != 2:
-            print('** instance id missing **')
+        elif arg[0] not in classes:
+            print("** class doesn't exist **")
         elif arg[0] in classes:
             if arg[0] + "." + arg[1] in new_dict:
                 print(new_dict[arg[0] + "." + arg[1]])
             else:
                 print("** no instance found **")
         else:
-            print("** class doesn't exist **")
+            print('** instance id missing **')
 
     def do_destroy(self, args):
         """Delete a class instance of a given id.
@@ -72,16 +73,17 @@ class HBNBCommand(cmd.Cmd):
         new_dict = storage.all()
         if len(arg) <= 0:
             print('** class name missing **')
-        elif len(arg) != 2:
-            print('** instance id missing **')
+        elif arg[0] not in classes:
+            print("** class doesn't exist **")
         elif arg[0] in classes:
-            if arg[0] + "." + arg[1] in new_dict:
+            if len(arg) < 2:
+                print('** instance id missing **')
+            elif arg[0] + "." + arg[1] in new_dict:
                 storage.all().pop(arg[0] + "." + arg[1])
                 storage.save()
             else:
                 print("** no instance found **")
-        else:
-            print("** class doesn't exist **")
+
 
     def do_all(self, args):
         """Display string representations of all instances of a given class.
@@ -154,6 +156,35 @@ class HBNBCommand(cmd.Cmd):
                 if all_dict[a].__class__.__name__ == args[0]:
                     count += 1
         print(count)
+
+    def default(self, line):
+        """default method to use with command()"""
+        arg = line.split('.')
+        if len(arg) >= 2:
+            if arg[1].count('()') == 1:
+                clas_name = arg[0]
+                a = arg[1].replace('(', '.')
+                b = a.replace(')', '.')
+                c = b.split('.')
+                command = c[0]
+                line = str(command + ' ' + clas_name)
+            elif arg[1].count('(') == 1 and arg[1].count(')') == 1:
+                arguments = ""
+                clas_name = arg[0]
+                a = arg[1].replace('(', '.')
+                b = a.replace(')', '.')
+                c = b.split('.')
+                command = c[0]
+                args = shlex.split(c[1], '"')
+                for wrd in args:
+                    arguments = arguments + wrd
+
+                d = str(command + ' ' + clas_name + ' ' + arguments)
+                line = d.replace(',', ' ')
+                print(line)
+
+        return line
+
 
 
 if __name__ == '__main__':
