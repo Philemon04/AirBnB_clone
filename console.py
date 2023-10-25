@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+"""Class that implements cmd lib"""
 import cmd
 import shlex
 
@@ -16,6 +17,7 @@ classes = {"BaseModel": BaseModel, "Amenity": Amenity, "City": City, "Place": Pl
 
 
 class HBNBCommand(cmd.Cmd):
+    """Console for shell."""
     prompt = '(hbnb) '
 
     def do_quit(self, arg):
